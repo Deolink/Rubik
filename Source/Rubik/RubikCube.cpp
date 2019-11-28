@@ -4,6 +4,7 @@
 #include "RubikCube.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Classes/Camera/CameraComponent.h"
+#include "RubikPiece.h"
 
 // Sets default values
 ARubikCube::ARubikCube()

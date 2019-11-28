@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class ARubikPiece;
 
 UCLASS()
 class RUBIK_API ARubikCube : public APawn
@@ -17,6 +18,10 @@ class RUBIK_API ARubikCube : public APawn
 public:
 	// Sets default values for this pawn's properties
 	ARubikCube();
+
+	//Public Variables
+	UPROPERTY(Category = Rubiks, EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<ARubikPiece> PieceClass;
 
 protected:
 	// Called when the game starts or when spawned
