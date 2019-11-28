@@ -17,11 +17,15 @@ ARubikCube::ARubikCube()
 	Root = CreateDefaultSubobject<USceneComponent>("Root");
 	RotatingRoot = CreateDefaultSubobject<USceneComponent>("RotatingRoot");
 
+	CameraSpringArm->bDoCollisionTest=false;
+
 	// Seting up the components tree
 	RootComponent = Root;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	RotatingRoot->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(CameraSpringArm);
+
+	
 
 }
 
@@ -30,7 +34,7 @@ void ARubikCube::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
+	Camera->SetRelativeLocation(FVector::ZeroVector);
 }
 
 // Called every frame
