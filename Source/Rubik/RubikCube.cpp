@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Classes/Camera/CameraComponent.h"
 #include "RubikPiece.h"
+#include "Classes/Engine/World.h"
 
 // Sets default values
 ARubikCube::ARubikCube()
@@ -35,7 +36,7 @@ void ARubikCube::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	Camera->SetRelativeLocation(FVector::ZeroVector);
+	SpawnPieces();
 }
 
 // Called every frame
@@ -52,3 +53,24 @@ void ARubikCube::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 }
 
+void ARubikCube::SpawnPieces()
+{
+	// For now we use 3 but probably we should be able to choose our cube size in future
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			for (int k = 0; k < 3; k++)
+			{
+				FActorSpawnParameters params;
+				params.Owner = this;
+
+				ARubikPiece *  Piece = GetWorld()->SpawnActor<ARubikPiece>(PieceClass, GetActorLocation() + FVector(100 * j, 100 * i,100 * k), FRotator(0, 0, 0), params);
+
+				Piece->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+
+				Pieces.Add(Piece);
+			}
+		}
+	}
+}

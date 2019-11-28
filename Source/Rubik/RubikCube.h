@@ -23,6 +23,9 @@ public:
 	UPROPERTY(Category = Rubiks, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ARubikPiece> PieceClass;
 
+	UPROPERTY()
+	TArray<ARubikPiece *> Pieces;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -48,6 +51,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* Camera;
+
+	UFUNCTION()
+	void SpawnPieces();
 
 
 
