@@ -64,12 +64,14 @@ void ARubikCube::SpawnPieces()
 			{
 				FActorSpawnParameters params;
 				params.Owner = this;
+				if (i*9+j*3+k+1 != 14) // fast test to not make spawn the middle cube
+				{
+					ARubikPiece *  Piece = GetWorld()->SpawnActor<ARubikPiece>(PieceClass, (GetActorLocation() - FVector(0, +100, +100) + FVector(100 * j, 100 * i, 100 * k)), FRotator(0, 0, 0), params);
 
-				ARubikPiece *  Piece = GetWorld()->SpawnActor<ARubikPiece>(PieceClass, GetActorLocation() + FVector(100 * j, 100 * i,100 * k), FRotator(0, 0, 0), params);
+					Piece->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 
-				Piece->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepWorldTransform);
-
-				Pieces.Add(Piece);
+					Pieces.Add(Piece);
+				}
 			}
 		}
 	}
