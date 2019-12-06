@@ -52,9 +52,26 @@ private:
 	UPROPERTY(EditAnywhere)
 	UCameraComponent* Camera;
 
+	UPROPERTY(EditAnywhere)
+	bool bIsCameraRotating = false;
+
+	UPROPERTY(EditAnywhere)
+	float PitchCameraValue;
+
+	UPROPERTY(EditAnywhere)
+	float YawCameraValue;
+
+	UFUNCTION()
+	void ToggleCameraRotation();
+
 	UFUNCTION()
 	void SpawnPieces();
 
+	UFUNCTION()
+	void CameraRotateX(float Value);
+
+	UFUNCTION()
+	void CameraRotateY(float Value);
 
 
 };

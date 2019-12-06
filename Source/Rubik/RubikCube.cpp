@@ -6,6 +6,7 @@
 #include "Classes/Camera/CameraComponent.h"
 #include "RubikPiece.h"
 #include "Classes/Engine/World.h"
+#include "Components/InputComponent.h"
 
 // Sets default values
 ARubikCube::ARubikCube()
@@ -18,16 +19,17 @@ ARubikCube::ARubikCube()
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Root = CreateDefaultSubobject<USceneComponent>("Root");
 	RotatingRoot = CreateDefaultSubobject<USceneComponent>("RotatingRoot");
-
 	CameraSpringArm->bDoCollisionTest=false;
 
-	// Seting up the components tree
+	// Setting up the components tree
 	RootComponent = Root;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	RotatingRoot->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(CameraSpringArm);
 
-	
+	// Setting up variables
+	YawCameraValue = .0f;
+	PitchCameraValue = .0f;
 
 }
 
@@ -51,6 +53,13 @@ void ARubikCube::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	
+	PlayerInputComponent->BindAction("EnableCameraRotation", EInputEvent::IE_Pressed, this, &ARubikCube::ToggleCameraRotation);
+	PlayerInputComponent->BindAction("EnableCameraRotation", EInputEvent::IE_Released, this, &ARubikCube::ToggleCameraRotation);
+
+	// Binding the rotation of the srping arm
+	PlayerInputComponent->BindAxis("CameraRotateX", this, &ARubikCube::CameraRotateX);
+	PlayerInputComponent->BindAxis("CameraRotateY", this, &ARubikCube::CameraRotateY);
 }
 
 void ARubikCube::SpawnPieces()
@@ -64,7 +73,7 @@ void ARubikCube::SpawnPieces()
 			{
 				FActorSpawnParameters params;
 				params.Owner = this;
-				if (i*9+j*3+k+1 != 14) // fast test to not make spawn the middle cube
+				if (i*9+j*3+k+1 != 14) //TODO function for generic size
 				{
 					ARubikPiece *  Piece = GetWorld()->SpawnActor<ARubikPiece>(PieceClass, (GetActorLocation() - FVector(0, +100, +100) + FVector(100 * j, 100 * i, 100 * k)), FRotator(0, 0, 0), params);
 
@@ -75,4 +84,31 @@ void ARubikCube::SpawnPieces()
 			}
 		}
 	}
+}
+
+void ARubikCube::ToggleCameraRotation()
+{
+	bIsCameraRotating = !bIsCameraRotating;
+	UE_LOG(LogTemp, Warning, TEXT("Test CameraRotating: %s"), (bIsCameraRotating ? TEXT("True") : TEXT("False")));
+}
+
+void ARubikCube::CameraRotateX(float Value)
+{
+	FMath::Clamp(Value, -1.f, 1.f);
+	YawCameraValue = Value;
+	FRotator NewRotation = FRotator(0.f ,YawCameraValue, 0.f);
+	FQuat QuatRotation = FQuat(NewRotation);	
+	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
+
+	UE_LOG(LogTemp, Warning, TEXT("Test X %f"), Value);
+}
+
+void ARubikCube::CameraRotateY(float Value)
+{
+	FMath::Clamp(Value, -1.f, 1.f);
+	PitchCameraValue = Value;
+	FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
+	FQuat QuatRotation = FQuat(NewRotation);
+	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
+	UE_LOG(LogTemp, Warning, TEXT("Test Y %f"), Value);
 }
