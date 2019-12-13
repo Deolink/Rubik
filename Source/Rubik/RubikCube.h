@@ -64,6 +64,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ZoomValue = 10;
 
+	UPROPERTY(EditAnywhere)
+	APlayerController* PlayerController;
+
 	UFUNCTION()
 	void ToggleCameraRotation();
 
@@ -81,5 +84,8 @@ private:
 
 	UFUNCTION()
 	void ZoomIn();
+
+	UFUNCTION()
+	void CubeFaceRotation();
 
 };

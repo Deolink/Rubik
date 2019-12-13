@@ -7,6 +7,7 @@
 #include "RubikPiece.h"
 #include "Classes/Engine/World.h"
 #include "Components/InputComponent.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values
 ARubikCube::ARubikCube()
@@ -33,11 +34,11 @@ ARubikCube::ARubikCube()
 
 }
 
-// Called when the game starts or when spawned
+// Called when the game starts or when spawneds
 void ARubikCube::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	PlayerController = Cast<APlayerController>(GetController());
 	SpawnPieces();
 }
 
@@ -45,7 +46,6 @@ void ARubikCube::BeginPlay()
 void ARubikCube::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -53,15 +53,17 @@ void ARubikCube::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	
+	// Binding Actions
 	PlayerInputComponent->BindAction("EnableCameraRotation", EInputEvent::IE_Pressed, this, &ARubikCube::ToggleCameraRotation);
 	PlayerInputComponent->BindAction("EnableCameraRotation", EInputEvent::IE_Released, this, &ARubikCube::ToggleCameraRotation);
-
-	// Binding the rotation of the srping arm
-	PlayerInputComponent->BindAxis("CameraRotateX", this, &ARubikCube::CameraRotateX);
-	PlayerInputComponent->BindAxis("CameraRotateY", this, &ARubikCube::CameraRotateY);
 	PlayerInputComponent->BindAction("ZoomOut", EInputEvent::IE_Pressed, this, &ARubikCube::ZoomOut);
 	PlayerInputComponent->BindAction("ZoomIn", EInputEvent::IE_Pressed, this, &ARubikCube::ZoomIn);
+	PlayerInputComponent->BindAction("CubeFaceRotation", EInputEvent::IE_Pressed, this, &ARubikCube::CubeFaceRotation);
+
+	// Binding Axis for camera spring
+	PlayerInputComponent->BindAxis("CameraRotateX", this, &ARubikCube::CameraRotateX);
+	PlayerInputComponent->BindAxis("CameraRotateY", this, &ARubikCube::CameraRotateY);
+	
 }
 
 void ARubikCube::SpawnPieces()
@@ -91,11 +93,11 @@ void ARubikCube::SpawnPieces()
 void ARubikCube::ToggleCameraRotation()
 {
 	bIsCameraRotating = !bIsCameraRotating;
-	UE_LOG(LogTemp, Warning, TEXT("Test CameraRotating: %s"), (bIsCameraRotating ? TEXT("True") : TEXT("False")));
 }
 
 void ARubikCube::CameraRotateX(float Value)
 {
+	// I don't use delta seconds cause the function is already called every frame
 	if (bIsCameraRotating)
 	{
 		FMath::Clamp(Value, -1.f, 1.f);
@@ -104,11 +106,11 @@ void ARubikCube::CameraRotateX(float Value)
 		FQuat QuatRotation = FQuat(NewRotation);
 		CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("Test X %f"), Value);
 }
 
 void ARubikCube::CameraRotateY(float Value)
 {
+	// I don't use delta seconds cause the function is already called every frame
 	if (bIsCameraRotating)
 	{
 	FMath::Clamp(Value, -1.f, 1.f);
@@ -116,7 +118,6 @@ void ARubikCube::CameraRotateY(float Value)
 	FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
 	FQuat QuatRotation = FQuat(NewRotation);
 	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
-	//UE_LOG(LogTemp, Warning, TEXT("Test Y %f"), Value);
 	}
 }
 
@@ -127,5 +128,28 @@ void ARubikCube::ZoomOut()
 
 void ARubikCube::ZoomIn()
 {
-	CameraSpringArm->TargetArmLength += ZoomValue;
+	CameraSpringArm->TargetArmLength-= ZoomValue;
+}
+
+void ARubikCube::CubeFaceRotation()
+{
+	
+	// Raycast and see if i hitted a cube
+	if (PlayerController != nullptr)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("It Works!") );
+		FHitResult Hit;
+		PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+
+		if(Hit.bBlockingHit)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hitted something") );
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Hitted nothing") );
+		}
+
+	}
+	// get the normal of the place i hitted
 }
