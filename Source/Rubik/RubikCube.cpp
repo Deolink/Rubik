@@ -60,6 +60,8 @@ void ARubikCube::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	// Binding the rotation of the srping arm
 	PlayerInputComponent->BindAxis("CameraRotateX", this, &ARubikCube::CameraRotateX);
 	PlayerInputComponent->BindAxis("CameraRotateY", this, &ARubikCube::CameraRotateY);
+	PlayerInputComponent->BindAction("ZoomOut", EInputEvent::IE_Pressed, this, &ARubikCube::ZoomOut);
+	PlayerInputComponent->BindAction("ZoomIn", EInputEvent::IE_Pressed, this, &ARubikCube::ZoomIn);
 }
 
 void ARubikCube::SpawnPieces()
@@ -75,7 +77,7 @@ void ARubikCube::SpawnPieces()
 				params.Owner = this;
 				if (i*9+j*3+k+1 != 14) //TODO function for generic size
 				{
-					ARubikPiece *  Piece = GetWorld()->SpawnActor<ARubikPiece>(PieceClass, (GetActorLocation() - FVector(0, +100, +100) + FVector(100 * j, 100 * i, 100 * k)), FRotator(0, 0, 0), params);
+					ARubikPiece *  Piece = GetWorld()->SpawnActor<ARubikPiece>(PieceClass, (GetActorLocation() - FVector(100, +100, +100) + FVector(100 * j, 100 * i, 100 * k)), FRotator(0, 0, 0), params);
 
 					Piece->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepWorldTransform);
 
@@ -94,21 +96,36 @@ void ARubikCube::ToggleCameraRotation()
 
 void ARubikCube::CameraRotateX(float Value)
 {
-	FMath::Clamp(Value, -1.f, 1.f);
-	YawCameraValue = Value;
-	FRotator NewRotation = FRotator(0.f ,YawCameraValue, 0.f);
-	FQuat QuatRotation = FQuat(NewRotation);	
-	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
-
-	UE_LOG(LogTemp, Warning, TEXT("Test X %f"), Value);
+	if (bIsCameraRotating)
+	{
+		FMath::Clamp(Value, -1.f, 1.f);
+		YawCameraValue = Value;
+		FRotator NewRotation = FRotator(0.f, YawCameraValue, 0.f);
+		FQuat QuatRotation = FQuat(NewRotation);
+		CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("Test X %f"), Value);
 }
 
 void ARubikCube::CameraRotateY(float Value)
 {
+	if (bIsCameraRotating)
+	{
 	FMath::Clamp(Value, -1.f, 1.f);
 	PitchCameraValue = Value;
 	FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
 	FQuat QuatRotation = FQuat(NewRotation);
 	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
-	UE_LOG(LogTemp, Warning, TEXT("Test Y %f"), Value);
+	//UE_LOG(LogTemp, Warning, TEXT("Test Y %f"), Value);
+	}
+}
+
+void ARubikCube::ZoomOut()
+{	
+	CameraSpringArm->TargetArmLength += ZoomValue; 
+}
+
+void ARubikCube::ZoomIn()
+{
+	CameraSpringArm->TargetArmLength += ZoomValue;
 }

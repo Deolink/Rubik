@@ -61,6 +61,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	float YawCameraValue;
 
+	UPROPERTY(EditAnywhere)
+	float ZoomValue = 10;
+
 	UFUNCTION()
 	void ToggleCameraRotation();
 
@@ -73,5 +76,10 @@ private:
 	UFUNCTION()
 	void CameraRotateY(float Value);
 
+	UFUNCTION()
+	void ZoomOut();
+
+	UFUNCTION()
+	void ZoomIn();
 
 };
