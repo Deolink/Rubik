@@ -31,6 +31,7 @@ ARubikCube::ARubikCube()
 	// Setting up variables
 	YawCameraValue = .0f;
 	PitchCameraValue = .0f;
+	CameraSpringArm->TargetArmLength = SpringArmLenght;
 
 }
 
@@ -110,7 +111,7 @@ void ARubikCube::CameraRotateX(float Value)
 
 void ARubikCube::CameraRotateY(float Value)
 {
-	// I don't use delta seconds cause the function is already called every frame
+	// Same as Camera Rotate X
 	if (bIsCameraRotating)
 	{
 	FMath::Clamp(Value, -1.f, 1.f);
@@ -137,13 +138,16 @@ void ARubikCube::CubeFaceRotation()
 	// Raycast and see if i hitted a cube
 	if (PlayerController != nullptr)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("It Works!") );
 		FHitResult Hit;
 		PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+		PlayerController->bShowMouseCursor = true;
 
 		if(Hit.bBlockingHit)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Hitted something") );
+			// get the normal of the place i hitted
+			UE_LOG(LogTemp, Warning, TEXT("Hitted something %s"), *Hit.Actor->GetName() );
+			UE_LOG(LogTemp, Warning, TEXT("Normal: %s"), *Hit.ImpactNormal.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Location %s"), *Hit.Actor->GetActorLocation().ToString());
 		}
 		else
 		{
@@ -151,5 +155,5 @@ void ARubikCube::CubeFaceRotation()
 		}
 
 	}
-	// get the normal of the place i hitted
+	
 }

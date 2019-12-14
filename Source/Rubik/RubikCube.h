@@ -26,6 +26,9 @@ public:
 	UPROPERTY()
 	TArray<ARubikPiece *> Pieces;
 
+	UPROPERTY()
+	TArray<ARubikPiece *> PiecesToRotate;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -63,6 +66,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ZoomValue = 10;
+
+	UPROPERTY(EditAnywhere)
+	float SpringArmLenght = 600;
 
 	UPROPERTY(EditAnywhere)
 	APlayerController* PlayerController;
