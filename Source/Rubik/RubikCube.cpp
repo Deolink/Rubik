@@ -22,7 +22,7 @@ ARubikCube::ARubikCube()
 	RotatingRoot = CreateDefaultSubobject<USceneComponent>("RotatingRoot");
 	CameraSpringArm->bDoCollisionTest=false;
 
-	// Setting up the components tree
+	// Setting up the components hierarchy
 	RootComponent = Root;
 	CameraSpringArm->SetupAttachment(RootComponent);
 	RotatingRoot->SetupAttachment(RootComponent);
@@ -40,6 +40,7 @@ void ARubikCube::BeginPlay()
 {
 	Super::BeginPlay();
 	PlayerController = Cast<APlayerController>(GetController());
+	PlayerController->bShowMouseCursor = true;
 	SpawnPieces();
 }
 
@@ -70,11 +71,11 @@ void ARubikCube::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 void ARubikCube::SpawnPieces()
 {
 	// For now we use 3 but probably we should be able to choose our cube size in future
-	for (int i = 0; i < 3; i++)
+	for (int32 i = 0; i < 3; i++)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int32 j = 0; j < 3; j++)
 		{
-			for (int k = 0; k < 3; k++)
+			for (int32 k = 0; k < 3; k++)
 			{
 				FActorSpawnParameters params;
 				params.Owner = this;
@@ -93,7 +94,19 @@ void ARubikCube::SpawnPieces()
 
 void ARubikCube::ToggleCameraRotation()
 {
+
 	bIsCameraRotating = !bIsCameraRotating;
+	if (CubeState == ECubeState::Idle)
+	{
+		CubeState = ECubeState::RotatingCamera;
+	}
+	else if (CubeState == ECubeState::RotatingCamera)	
+	{
+		CubeState = ECubeState::Idle;
+	}
+	
+	//UE_LOG(LogTemp, Warning, TEXT("PlayerState: %s");
+	
 }
 
 void ARubikCube::CameraRotateX(float Value)
@@ -140,7 +153,6 @@ void ARubikCube::CubeFaceRotation()
 	{
 		FHitResult Hit;
 		PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
-		PlayerController->bShowMouseCursor = true;
 
 		if(Hit.bBlockingHit)
 		{
@@ -155,5 +167,10 @@ void ARubikCube::CubeFaceRotation()
 		}
 
 	}
+	
+}
+
+void ARubikCube::AddPiecesToRotate()
+{
 	
 }

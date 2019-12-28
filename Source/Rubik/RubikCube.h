@@ -10,6 +10,28 @@ class USpringArmComponent;
 class UCameraComponent;
 class ARubikPiece;
 
+UENUM(BlueprintType)
+enum class ECFace : uint8
+{
+	Front UMETA(DisplayName="Front"),
+	Back  UMETA(DisplayName="Back"),
+	Right,
+	Left,
+	Upper,
+	Lower
+};
+
+UENUM(BlueprintType)
+enum class ECubeState : uint8
+{
+	RotatingCamera UMETA(DisplayName="RotatingCamera"),
+	RotatingPieces UMETA(DisplayName="RotatingPieces"),
+	Pause UMETA(DisplayName="Pause"),
+	Idle UMETA(DisplayName="Idle")
+};
+
+
+
 UCLASS()
 class RUBIK_API ARubikCube : public APawn
 {
@@ -28,6 +50,12 @@ public:
 
 	UPROPERTY()
 	TArray<ARubikPiece *> PiecesToRotate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
+	ECubeState CubeState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
+	ECFace CubeFace;
 
 protected:
 	// Called when the game starts or when spawned
@@ -73,6 +101,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	APlayerController* PlayerController;
 
+	//Declaring the functions
 	UFUNCTION()
 	void ToggleCameraRotation();
 
@@ -93,5 +122,8 @@ private:
 
 	UFUNCTION()
 	void CubeFaceRotation();
+
+	UFUNCTION()
+	void AddPiecesToRotate();
 
 };
