@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "RubikCube.generated.h"
 
+
 class USpringArmComponent;
 class UCameraComponent;
 class ARubikPiece;
@@ -15,10 +16,10 @@ enum class ECFace : uint8
 {
 	Front UMETA(DisplayName="Front"),
 	Back  UMETA(DisplayName="Back"),
-	Right,
-	Left,
-	Upper,
-	Lower
+	Right UMETA(DisplayName="Right"),
+	Left  UMETA(DisplayName="Left"),
+	Upper UMETA(DisplayName="Upper"),
+	Lower UMETA(DisplayName="Lower")
 };
 
 UENUM(BlueprintType)
@@ -37,6 +38,8 @@ class RUBIK_API ARubikCube : public APawn
 {
 	GENERATED_BODY()
 
+	
+
 public:
 	// Sets default values for this pawn's properties
 	ARubikCube();
@@ -52,7 +55,7 @@ public:
 	TArray<ARubikPiece *> PiecesToRotate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
-	ECubeState CubeState;
+	ECubeState CubeState = ECubeState::Idle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
 	ECFace CubeFace;
@@ -124,6 +127,6 @@ private:
 	void CubeFaceRotation();
 
 	UFUNCTION()
-	void AddPiecesToRotate();
+	void AddPiecesToRotate(ECFace CubeFaceChheck, FVector PieceHittedLocation);
 
 };

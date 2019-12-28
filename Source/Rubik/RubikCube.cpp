@@ -104,9 +104,9 @@ void ARubikCube::ToggleCameraRotation()
 	{
 		CubeState = ECubeState::Idle;
 	}
-	
+	//FString message = TEXT("Our enum value: ") + EnumToString(TEXT("ETeam"), static_cast<uint8>(Team));
 	//UE_LOG(LogTemp, Warning, TEXT("PlayerState: %s");
-	
+
 }
 
 void ARubikCube::CameraRotateX(float Value)
@@ -160,6 +160,7 @@ void ARubikCube::CubeFaceRotation()
 			UE_LOG(LogTemp, Warning, TEXT("Hitted something %s"), *Hit.Actor->GetName() );
 			UE_LOG(LogTemp, Warning, TEXT("Normal: %s"), *Hit.ImpactNormal.ToString());
 			UE_LOG(LogTemp, Warning, TEXT("Location %s"), *Hit.Actor->GetActorLocation().ToString());
+			AddPiecesToRotate(ECFace::Front, Hit.Actor->GetActorLocation());
 		}
 		else
 		{
@@ -170,7 +171,21 @@ void ARubikCube::CubeFaceRotation()
 	
 }
 
-void ARubikCube::AddPiecesToRotate()
+void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLocation)
 {
-	
+	PiecesToRotate.Empty();
+
+	if (CubeFaceCheck == ECFace::Front)
+	{
+		for (ARubikPiece * RubikPiece: Pieces)
+		{
+			if (RubikPiece->GetActorLocation().Z == PieceHittedLocation.Z)
+			{
+				PiecesToRotate.Add(RubikPiece);
+				UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
+			}
+		}
+	}
 }
+
