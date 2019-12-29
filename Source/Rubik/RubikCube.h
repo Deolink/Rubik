@@ -54,11 +54,23 @@ public:
 	UPROPERTY()
 	TArray<ARubikPiece *> PiecesToRotate;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	float AngleRotation = 20.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
 	ECubeState CubeState = ECubeState::Idle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
 	ECFace CubeFace;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	float RotationPiecesPitch = 90.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	float RotationPiecesYaw = 90.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	float RotationPiecesRoll = 90.f;
 
 protected:
 	// Called when the game starts or when spawned
@@ -127,6 +139,6 @@ private:
 	void CubeFaceRotation();
 
 	UFUNCTION()
-	void AddPiecesToRotate(ECFace CubeFaceChheck, FVector PieceHittedLocation);
+	void AddPiecesToRotate(ECFace CubeFaceChheck, FVector PieceHittedLocation, FVector FaceNormal);
 
 };

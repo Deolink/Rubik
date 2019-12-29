@@ -42,6 +42,7 @@ void ARubikCube::BeginPlay()
 	PlayerController = Cast<APlayerController>(GetController());
 	PlayerController->bShowMouseCursor = true;
 	SpawnPieces();
+	
 }
 
 // Called every frame
@@ -115,7 +116,7 @@ void ARubikCube::CameraRotateX(float Value)
 	if (bIsCameraRotating)
 	{
 		FMath::Clamp(Value, -1.f, 1.f);
-		YawCameraValue = Value;
+		YawCameraValue = Value * GetWorld()->GetDeltaSeconds() * AngleRotation;
 		FRotator NewRotation = FRotator(0.f, YawCameraValue, 0.f);
 		FQuat QuatRotation = FQuat(NewRotation);
 		CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
@@ -128,7 +129,7 @@ void ARubikCube::CameraRotateY(float Value)
 	if (bIsCameraRotating)
 	{
 	FMath::Clamp(Value, -1.f, 1.f);
-	PitchCameraValue = Value;
+	PitchCameraValue = Value * GetWorld()->GetDeltaSeconds() * AngleRotation;
 	FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
 	FQuat QuatRotation = FQuat(NewRotation);
 	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
@@ -160,7 +161,7 @@ void ARubikCube::CubeFaceRotation()
 			UE_LOG(LogTemp, Warning, TEXT("Hitted something %s"), *Hit.Actor->GetName() );
 			UE_LOG(LogTemp, Warning, TEXT("Normal: %s"), *Hit.ImpactNormal.ToString());
 			UE_LOG(LogTemp, Warning, TEXT("Location %s"), *Hit.Actor->GetActorLocation().ToString());
-			AddPiecesToRotate(ECFace::Front, Hit.Actor->GetActorLocation());
+			AddPiecesToRotate(ECFace::Front, Hit.Actor->GetActorLocation(), Hit.ImpactNormal);
 		}
 		else
 		{
@@ -170,22 +171,39 @@ void ARubikCube::CubeFaceRotation()
 	}
 	
 }
+/* Appunti per rotazione: 
+ - Con la normale cerchiamo di capire in quale faccia siamo
+ - Meglio creare una funzione solo per girare e una che ci ritorna un array di pezzi da ruotare
+ Oppure
+ - Fare tutto insieme nella stessa funzione e dopo fare un refactoring del codice (soluzione migliore)
+ - Analizzare se si sono inseriti troppi dati ridondanti
 
-void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLocation)
+*/
+void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLocation, FVector FaceNormal)
 {
 	PiecesToRotate.Empty();
 
 	if (CubeFaceCheck == ECFace::Front)
 	{
-		for (ARubikPiece * RubikPiece: Pieces)
+		for (ARubikPiece * RubikPiece : Pieces)
 		{
 			if (RubikPiece->GetActorLocation().Z == PieceHittedLocation.Z)
 			{
 				PiecesToRotate.Add(RubikPiece);
-				UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
-
+				RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
 			}
 		}
+
+		FRotator NewRotation = FRotator(RotationPiecesPitch, RotationPiecesYaw, RotationPiecesRoll);
+		FQuat QuatRotation = FQuat(NewRotation);
+		RotatingRoot->AddLocalRotation(QuatRotation,false, 0, ETeleportType::None);
+		
+		for (ARubikPiece * Attached : PiecesToRotate)
+		{
+			Attached->AttachToComponent(this->RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+		}
+
+		//UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
 	}
 }
 
