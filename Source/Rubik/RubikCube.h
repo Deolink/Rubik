@@ -14,12 +14,13 @@ class ARubikPiece;
 UENUM(BlueprintType)
 enum class ECFace : uint8
 {
-	Front UMETA(DisplayName="Front"),
-	Back  UMETA(DisplayName="Back"),
-	Right UMETA(DisplayName="Right"),
-	Left  UMETA(DisplayName="Left"),
-	Upper UMETA(DisplayName="Upper"),
-	Lower UMETA(DisplayName="Lower")
+	Front 		UMETA(DisplayName="Front"),
+	Back  		UMETA(DisplayName="Back"),
+	Right 		UMETA(DisplayName="Right"),
+	Left  		UMETA(DisplayName="Left"),
+	Top 		UMETA(DisplayName="Top"),
+	Bottom 		UMETA(DisplayName="Bottom"),
+	NotSelected UMETA(DisplayName="NotSelected")
 };
 
 UENUM(BlueprintType)
@@ -27,8 +28,9 @@ enum class ECubeState : uint8
 {
 	RotatingCamera UMETA(DisplayName="RotatingCamera"),
 	RotatingPieces UMETA(DisplayName="RotatingPieces"),
-	Pause UMETA(DisplayName="Pause"),
-	Idle UMETA(DisplayName="Idle")
+	Pause 		   UMETA(DisplayName="Pause"),
+	Idle 		   UMETA(DisplayName="Idle"),
+	Scramble       UMETA(DisplayName="Scramble")
 };
 
 
@@ -61,16 +63,16 @@ public:
 	ECubeState CubeState = ECubeState::Idle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Enum)
-	ECFace CubeFace;
+	ECFace CubeFace = ECFace::NotSelected;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
-	float RotationPiecesPitch = 90.f;
+	float RotationPiecesPitch = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
 	float RotationPiecesYaw = 90.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
-	float RotationPiecesRoll = 90.f;
+	float RotationPiecesRoll = 0.f;
 
 protected:
 	// Called when the game starts or when spawned
@@ -102,6 +104,9 @@ private:
 	bool bIsCameraRotating = false;
 
 	UPROPERTY(EditAnywhere)
+	bool bIsFaceRotating = false;
+
+	UPROPERTY(EditAnywhere)
 	float PitchCameraValue;
 
 	UPROPERTY(EditAnywhere)
@@ -118,7 +123,7 @@ private:
 
 	//Declaring the functions
 	UFUNCTION()
-	void ToggleCameraRotation();
+	void ControlHit();
 
 	UFUNCTION()
 	void SpawnPieces();
@@ -136,9 +141,11 @@ private:
 	void ZoomIn();
 
 	UFUNCTION()
-	void CubeFaceRotation();
+	void BackToIdle();
 
 	UFUNCTION()
 	void AddPiecesToRotate(ECFace CubeFaceChheck, FVector PieceHittedLocation, FVector FaceNormal);
 
+	UFUNCTION()
+	void ClickedFace(FVector NormalVector);
 };
