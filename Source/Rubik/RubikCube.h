@@ -50,10 +50,10 @@ public:
 	UPROPERTY(Category = Rubiks, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ARubikPiece> PieceClass;
 
-	UPROPERTY()
+	UPROPERTY(Category = Rubiks, EditAnywhere, BlueprintReadWrite)
 	TArray<ARubikPiece *> Pieces;
 
-	UPROPERTY()
+	UPROPERTY(Category = Rubiks, EditAnywhere, BlueprintReadWrite)
 	TArray<ARubikPiece *> PiecesToRotate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
@@ -74,6 +74,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
 	float RotationPiecesRoll = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	FVector2D ScreenPointClicked;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	FVector2D MousePosition;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	FVector MousePosition3D;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	FVector MouseDirection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	FVector StartClickLocation;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -148,4 +162,7 @@ private:
 
 	UFUNCTION()
 	void ClickedFace(FVector NormalVector);
+
+	/*UFUNCTION()
+	void RotatePieces();*/
 };

@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "RubikCube.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Classes/Camera/CameraComponent.h"
@@ -14,7 +13,6 @@ ARubikCube::ARubikCube()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	// Initializing the components
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>("CameraSpringArm");
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
@@ -24,6 +22,7 @@ ARubikCube::ARubikCube()
 
 	// Setting up the components hierarchy
 	RootComponent = Root;
+	
 	CameraSpringArm->SetupAttachment(RootComponent);
 	RotatingRoot->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(CameraSpringArm);
@@ -62,6 +61,48 @@ void ARubikCube::Tick(float DeltaTime)
  	- Fare tutto insieme nella stessa funzione e dopo fare un refactoring del codice (soluzione migliore)
  	- Analizzare se si sono inseriti troppi dati ridondanti
 	*/
+	/*
+	------ First make it work for the front face, then we make the same logic for the others faces -------------
+	Front: 
+	Rotate right/left= same Z  Rotate up/down = same Y
+	Z Value = Yaw -> SubtractRotation = Antiorario AddRotation = Orario
+	X Value = Roll -> No Roll Rotation on front
+	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
+	*/
+	//PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
+	//PlayerController->DeprojectMousePositionToWorld(MousePosition3D, MouseDirection);
+	//PlayerController->GetInputMouseDelta(MousePosition.X, MousePosition.Y);
+
+	FVector Direction;
+	FVector CurrentLocation;
+	FHitResult Hit;
+	if (PlayerController != nullptr && CubeState == ECubeState::RotatingPieces)
+	{
+	
+	PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+	// controllare che ho hittato un RubikPiece
+	CurrentLocation = Hit.Location;
+	Direction = StartClickLocation - CurrentLocation;
+	FVector NormalizedDirection = Direction.GetSafeNormal();
+	UE_LOG(LogTemp, Warning, TEXT("Normalized Direction %s"), *NormalizedDirection.ToString());
+	
+	}
+
+
+	if ((ScreenPointClicked - MousePosition).GetSafeNormal() != FVector2D::ZeroVector)
+	{
+		UE_LOG(LogTemp, Display, TEXT("entered if"));
+		switch (CubeState)
+		{
+		case ECubeState::Idle:
+			
+			break;
+		
+		default:
+			break;
+		}
+	}
+
 	}
 }
 
@@ -114,7 +155,6 @@ void ARubikCube::ControlHit()
 	{
 		FHitResult Hit;
 		PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
-
 		if(Hit.bBlockingHit)
 		{
 			// get the normal of the place i hitted
@@ -123,8 +163,15 @@ void ARubikCube::ControlHit()
 			UE_LOG(LogTemp, Warning, TEXT("Hitted something %s"), *Hit.Actor->GetName() );
 			UE_LOG(LogTemp, Warning, TEXT("Normal: %s"), *Hit.ImpactNormal.ToString());
 			UE_LOG(LogTemp, Warning, TEXT("Location %s"), *Hit.Actor->GetActorLocation().ToString());
+			UE_LOG(LogTemp, Warning, TEXT("Location %s"), *Hit.Location.ToString());
+			PlayerController->ProjectWorldLocationToScreen(Hit.Location, ScreenPointClicked, true);
+			UE_LOG(LogTemp, Warning, TEXT("Location %s"), *ScreenPointClicked.ToString());
+			
+
+			StartClickLocation = Hit.Location;
+			
 			ClickedFace(Hit.ImpactNormal);
-			AddPiecesToRotate(CubeFace, Hit.Actor->GetActorLocation(), Hit.ImpactNormal);
+			AddPiecesToRotate(CubeFace, Hit.Actor->GetActorLocation(), Hit.ImpactNormal); // spostare in update
 		}
 		else
 		{
@@ -214,9 +261,28 @@ void ARubikCube::ClickedFace(FVector NormalVector)
 	}
 }
 
+/*void ARubikCube::RotatePieces()
+{
+	
+	RelativeSpeed = FMath::Clamp<float>(RelativeSpeed, -1.f, 1.f);
+	float RotationChange = RelativeSpeed * MaxDegreesPerSecond * GetWorld()->DeltaTimeSeconds;
+	float Rotation = YawRotation->RelativeRotation.Yaw + RotationChange;
+	YawRotation->SetRelativeRotation(FRotator(0.f, Rotation, 0.f));
+
+	if (YawRotation->RelativeRotation.Yaw > 45.f)
+	{
+		RelativeSpeed = -1;
+	}
+	else if (YawRotation->RelativeRotation.Yaw < -45.f)
+	{
+		RelativeSpeed = 1;
+	}
+}*/
+
 void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLocation, FVector FaceNormal)
 {
 	PiecesToRotate.Empty();
+	
 	/*
 	------ First make it work for the front face, then we make the same logic for the others faces -------------
 	Front: 
@@ -227,15 +293,19 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 	*/
 	if (CubeFaceCheck == ECFace::Front)
 	{
+		// y = 1 90° ;;;; y = -1 -90°
+		// z = 1 90° ;;;; z = -1 -90°
 		for (ARubikPiece * RubikPiece : Pieces)
 		{
 			if (RubikPiece->GetActorLocation().Z == PieceHittedLocation.Z)
 			{
 				PiecesToRotate.Add(RubikPiece);
 				RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+				// rotate RotatingRoot
 			}
 		}
 		UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
 	}
 	/*
 	Back: 
