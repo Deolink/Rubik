@@ -72,14 +72,29 @@ void ARubikCube::Tick(float DeltaTime)
 	//PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
 	//PlayerController->DeprojectMousePositionToWorld(MousePosition3D, MouseDirection);
 	//PlayerController->GetInputMouseDelta(MousePosition.X, MousePosition.Y);
-
-	
+	bool bIsTouchingPressed;
+	FVector TouchPosition;
+	PlayerController->GetInputTouchState(ETouchIndex::Touch1, TouchPosition.X, TouchPosition.Y, bIsTouchingPressed);
+	UE_LOG(LogTemp, Warning, TEXT("Is Touching Pressed? : %b"), bIsTouchingPressed);
 	if (PlayerController != nullptr && CubeState == ECubeState::RotatingPieces)
 	{
 	FVector Direction;
 	FVector CurrentLocation;
 	FHitResult Hit;
-	PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+
+	if (bIsTouchingPressed)
+	{
+		PlayerController->GetHitResultUnderFingerByChannel(ETouchIndex::Touch1, ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+	}
+	else
+	{
+		PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+	}
+	
+	
+	
+	
+	
 	//TODO controllare che ho hittato un RubikPiece
 	if (Hit.Actor!=nullptr){
 		CurrentLocation = Hit.Location;
