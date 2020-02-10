@@ -158,7 +158,7 @@ private:
 	void BackToIdle();
 
 	UFUNCTION()
-	void AddPiecesToRotate(ECFace CubeFaceChheck, FVector PieceHittedLocation, FVector FaceNormal);
+	void AddPiecesToRotate(ECFace CubeFaceChheck, FVector PieceHittedLocation, FVector Direction);
 
 	UFUNCTION()
 	void ClickedFace(FVector NormalVector);
