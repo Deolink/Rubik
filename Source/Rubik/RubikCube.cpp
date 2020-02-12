@@ -7,6 +7,8 @@
 #include "Classes/Engine/World.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "Runtime/Engine/Classes/Components/TimelineComponent.h"
+
 
 // Sets default values
 ARubikCube::ARubikCube()
@@ -31,6 +33,12 @@ ARubikCube::ARubikCube()
 	YawCameraValue = .0f;
 	PitchCameraValue = .0f;
 	CameraSpringArm->TargetArmLength = SpringArmLenght;
+
+	//Timeline
+	MyTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline"));
+	
+	InterpFunction.BindUFunction(this, FName("TimelineFloatReturn"));
+	TimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
 }
 
 // Called when the game starts or when spawneds
@@ -39,7 +47,26 @@ void ARubikCube::BeginPlay()
 	Super::BeginPlay();
 	PlayerController = Cast<APlayerController>(GetController());
 	PlayerController->bShowMouseCursor = true;
-	SpawnPieces();	
+
+	//TimeLine
+
+	// Check is curve asset reference is valid
+	if(fCurve)
+	{
+		MyTimeLine->AddInterpFloat(fCurve, InterpFunction, FName("Alpha"));
+		MyTimeLine->SetTimelineFinishedFunc(TimelineFinished);
+
+		//Setting tutorial vectors
+		StartRotation = RotatingRoot->RelativeRotation;
+
+		EndRotation = FRotator(StartRotation.Pitch, StartRotation.Yaw, StartRotation.Roll + OffsetRotation);
+		MyTimeLine->SetLooping(false);
+		MyTimeLine->SetIgnoreTimeDilation(true);
+
+		MyTimeLine->Play();
+	}
+
+	SpawnPieces();
 }
 
 // Called every frame
@@ -435,5 +462,16 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
 	*/
 	
+}
+
+void ARubikCube::TimelineFloatReturn(float value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("%f"), value);
+}
+
+void ARubikCube::OnTimelineFinished()
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("Finished"));
 }
 

@@ -4,12 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Runtime/Engine/Classes/Components/TimelineComponent.h"
 #include "RubikCube.generated.h"
 
 
 class USpringArmComponent;
 class UCameraComponent;
 class ARubikPiece;
+class UTimelineComponent;
+class UCurveFloat;
 
 UENUM(BlueprintType)
 enum class ECFace : uint8
@@ -88,6 +91,38 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
 	FVector StartClickLocation;
+
+	//Timeline setup
+	UTimelineComponent* MyTimeLine;
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* fCurve;
+
+	UPROPERTY()
+	FRotator StartRotation;
+
+	UPROPERTY()
+	FRotator EndRotation;
+
+	UPROPERTY()
+	float OffsetRotation = 90.f;
+
+	/* Declare our delegate function to be binded with TimelineFloatReturn(float value)*/
+	FOnTimelineFloat InterpFunction{};
+
+	/* Declare our delegate function to be binded with OnTimelineFinished()*/
+	FOnTimelineEvent TimelineFinished{};
+
+	UFUNCTION()
+	void TimelineFloatReturn(float value);
+
+	UFUNCTION()
+	void OnTimelineFinished();
+
+	
+
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
