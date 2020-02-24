@@ -283,22 +283,21 @@ void ARubikCube::CameraRotateX(float Value)
 {	
 	if (bIsCameraRotating && CubeState == ECubeState::RotatingCamera)
 	{
-		FMath::Clamp(Value, -1.f, 1.f);
+		//FMath::Clamp(Value, -1.f, 1.f);
 		YawCameraValue = Value * GetWorld()->GetDeltaSeconds() * AngleRotation;
 		FRotator NewRotation = FRotator(0.f, YawCameraValue, 0.f);
 		FQuat QuatRotation = FQuat(NewRotation);
 		CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
 	}
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
-		FString::Printf(TEXT("Calling Camera Rotate X with Value = %f"), Value));
+	
 }
 
 void ARubikCube::CameraRotateY(float Value)
 {
 	if (bIsCameraRotating && CubeState == ECubeState::RotatingCamera)
 	{
-		FMath::Clamp(Value, -1.f, 1.f);
+		//FMath::Clamp(Value, -1.f, 1.f);
 		PitchCameraValue = Value * GetWorld()->GetDeltaSeconds() * AngleRotation;
 		FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
 		FQuat QuatRotation = FQuat(NewRotation);
@@ -471,14 +470,83 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 
 	}
 
-	CubeState = ECubeState::Idle;
-	/*
-	Back: 
-	Rotate right/left= same Z  Rotate up/down = same Y
-	Z Value = Yaw -> SubtractRotation = Antiorario AddRotation = Orario
-	X Value = Roll -> No Roll Rotation on front
-	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
-	*/
+	if (CubeFaceCheck == ECFace::Back)
+	{
+		// y = 1 90°z ;;;; y = -1 -90°y
+		// z = 1 90°y ;;;; z = -1 -90°z
+		/*for (ARubikPiece * RubikPiece : Pieces)
+		{
+			if (RubikPiece->GetActorLocation().Z == PieceHittedLocation.Z)
+			{
+				PiecesToRotate.Add(RubikPiece);
+				RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+				// rotate RotatingRoot
+				
+			}
+		}*/
+		if (Direction.Y < -0.5f){
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s %s"), *RubikPiece->GetActorLocation().ToString(), *PieceHittedLocation.ToString());
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Z  - PieceHittedLocation.Z)) < 0.2f)
+				{
+
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			//TODO Rotate Animation Start, use a flag for it
+			RotatingRoot->SetRelativeRotation(FRotator(0,90,0));
+		}
+		else if (Direction.Y > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Z  - PieceHittedLocation.Z)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,-90,0));
+		}
+		else if (Direction.Z < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Y  - PieceHittedLocation.Y)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(90,0,0));
+		}
+		else if (Direction.Z > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Y  - PieceHittedLocation.Y)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(-90,0,0));
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
+	}
+
 	/*
 	Right:
 	Rotate right/left= same Z  Rotate up/down = same Y
@@ -486,6 +554,72 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 	X Value = Roll -> No Roll Rotation on front
 	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
 	*/
+	if (CubeFaceCheck == ECFace::Right)
+	{
+		// y = 1 90°z ;;;; y = -1 -90°y
+		// z = 1 90°y ;;;; z = -1 -90°z
+		if (Direction.X > 0.5f){
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s %s"), *RubikPiece->GetActorLocation().ToString(), *PieceHittedLocation.ToString());
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Z  - PieceHittedLocation.Z)) < 0.2f)
+				{
+
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			//TODO Rotate Animation Start, use a flag for it
+			RotatingRoot->SetRelativeRotation(FRotator(0,90,0));
+		}
+		else if (Direction.X < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Z  - PieceHittedLocation.Z)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,-90,0));
+		}
+		else if (Direction.Z > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,90));
+		}
+		else if (Direction.Z < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,-90));
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
+	}
 	/*
 	Left:
 	Rotate right/left= same Z  Rotate up/down = same Y
@@ -493,6 +627,73 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 	X Value = Roll -> No Roll Rotation on front
 	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
 	*/
+	if (CubeFaceCheck == ECFace::Left)
+	{
+		// y = 1 90°z ;;;; y = -1 -90°y
+		// z = 1 90°y ;;;; z = -1 -90°z
+		if (Direction.X < -0.5f){
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s %s"), *RubikPiece->GetActorLocation().ToString(), *PieceHittedLocation.ToString());
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Z  - PieceHittedLocation.Z)) < 0.2f)
+				{
+
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			//TODO Rotate Animation Start, use a flag for it
+			RotatingRoot->SetRelativeRotation(FRotator(0,90,0));
+		}
+		else if (Direction.X > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Z  - PieceHittedLocation.Z)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,-90,0));
+		}
+		else if (Direction.Z < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,90));
+		}
+		else if (Direction.Z > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,-90));
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
+	}
+
 	/*
 	Top:
 	Rotate right/left= same Z  Rotate up/down = same Y
@@ -500,6 +701,73 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 	X Value = Roll -> No Roll Rotation on front
 	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
 	*/
+	if (CubeFaceCheck == ECFace::Top)
+	{
+		// y = 1 90°z ;;;; y = -1 -90°y
+		// z = 1 90°y ;;;; z = -1 -90°z
+		if (Direction.Y > 0.5f){
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s %s"), *RubikPiece->GetActorLocation().ToString(), *PieceHittedLocation.ToString());
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			//TODO Rotate Animation Start, use a flag for it
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,90));
+		}
+		else if (Direction.Y < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,-90));
+		}
+		else if (Direction.X > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Y  - PieceHittedLocation.Y)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(90,0,0));
+		}
+		else if (Direction.X < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Y  - PieceHittedLocation.Y)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(-90,0,0));
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
+	}
+
 	/*
 	Bottom:
 	Rotate right/left= same Z  Rotate up/down = same Y
@@ -507,6 +775,75 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 	X Value = Roll -> No Roll Rotation on front
 	Y Value = Pitch -> SubtractRotation = Orario AddRotation = Antiorario
 	*/
+	if (CubeFaceCheck == ECFace::Bottom)
+	{
+		// y = 1 90°z ;;;; y = -1 -90°y
+		// z = 1 90°y ;;;; z = -1 -90°z
+		if (Direction.Y < -0.5f){
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s %s"), *RubikPiece->GetActorLocation().ToString(), *PieceHittedLocation.ToString());
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			//TODO Rotate Animation Start, use a flag for it
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,90));
+		}
+		else if (Direction.Y > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().X  - PieceHittedLocation.X)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(0,0,-90));
+		}
+		else if (Direction.X < -0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Y  - PieceHittedLocation.Y)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(90,0,0));
+		}
+		else if (Direction.X > 0.5f)
+		{
+			for (ARubikPiece * RubikPiece : Pieces)
+			{
+				if ((FMath::Abs(RubikPiece->GetActorLocation().Y  - PieceHittedLocation.Y)) < 0.2f)
+				{
+					PiecesToRotate.Add(RubikPiece);
+					RubikPiece->AttachToComponent(this->RotatingRoot, FAttachmentTransformRules::KeepWorldTransform);
+					// rotate RotatingRoot
+				
+				}
+			}
+			RotatingRoot->SetRelativeRotation(FRotator(-90,0,0));
+		}
+		
+		UE_LOG(LogTemp, Warning, TEXT("Hitted something %d"), PiecesToRotate.Num());
+
+	}
+	
+	CubeState = ECubeState::Idle;
+	
 	
 }
 
