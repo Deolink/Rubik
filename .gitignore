@@ -1,6 +1,7 @@
 # Visual Studio 2015/ VSCode user specific files
 .vs/
 .vscode/
+
 Rubik.code-workspace
 *.code-workspace
 
@@ -60,6 +61,7 @@ Build/*
 !Build/*/
 Build/*/**
 !Build/*/PakBlacklist*.txt
+APK/*
 
 # Don't ignore icon files in Build
 !Build/**/*.ico
