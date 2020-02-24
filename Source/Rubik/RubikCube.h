@@ -48,7 +48,7 @@ class RUBIK_API ARubikCube : public APawn
 public:
 	// Sets default values for this pawn's properties
 	ARubikCube();
-
+	
 	//Public Variables
 	UPROPERTY(Category = Rubiks, EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<ARubikPiece> PieceClass;
@@ -87,10 +87,13 @@ public:
 	FVector MousePosition3D;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
-	FVector MouseDirection;
+	FVector DirectionCamera;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
 	FVector StartClickLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Debug)
+	FVector TouchPosition;
 
 	//Timeline setup
 	UTimelineComponent* MyTimeLine;
@@ -150,6 +153,9 @@ private:
 	UCameraComponent* Camera;
 
 	UPROPERTY(EditAnywhere)
+	bool bIsTouchingPressed = false;
+
+	UPROPERTY(EditAnywhere)
 	bool bIsCameraRotating = false;
 
 	UPROPERTY(EditAnywhere)
@@ -178,10 +184,10 @@ private:
 	void SpawnPieces();
 
 	UFUNCTION()
-	void CameraRotateX(float Value);
+	void CameraRotateX(float Value = 1.0f);
 
 	UFUNCTION()
-	void CameraRotateY(float Value);
+	void CameraRotateY(float Value = 1.0f);
 
 	UFUNCTION()
 	void ZoomOut();

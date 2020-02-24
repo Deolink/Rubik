@@ -8,6 +8,8 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Runtime/Engine/Classes/Components/TimelineComponent.h"
+#include <EngineGlobals.h>
+#include <Runtime/Engine/Classes/Engine/Engine.h>
 
 
 // Sets default values
@@ -15,6 +17,7 @@ ARubikCube::ARubikCube()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 	// Initializing the components
 	CameraSpringArm = CreateDefaultSubobject<USpringArmComponent>("CameraSpringArm");
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
@@ -23,8 +26,7 @@ ARubikCube::ARubikCube()
 	CameraSpringArm->bDoCollisionTest=false;
 
 	// Setting up the components hierarchy
-	RootComponent = Root;
-	
+	RootComponent = Root;	
 	CameraSpringArm->SetupAttachment(RootComponent);
 	RotatingRoot->SetupAttachment(RootComponent);
 	Camera->SetupAttachment(CameraSpringArm);
@@ -34,11 +36,12 @@ ARubikCube::ARubikCube()
 	PitchCameraValue = .0f;
 	CameraSpringArm->TargetArmLength = SpringArmLenght;
 
-	//Timeline
-	MyTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline"));
-	
+	//Timeline for rotation animation
+	MyTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("Timeline"));	
 	InterpFunction.BindUFunction(this, FName("TimelineFloatReturn"));
 	TimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
+
+	
 }
 
 // Called when the game starts or when spawneds
@@ -48,9 +51,9 @@ void ARubikCube::BeginPlay()
 	PlayerController = Cast<APlayerController>(GetController());
 	PlayerController->bShowMouseCursor = true;
 
-	//TimeLine
+	//TimeLine Logic
 
-	// Check is curve asset reference is valid
+	// Check is curve asset reference is valid, for test
 	if(fCurve)
 	{
 		MyTimeLine->AddInterpFloat(fCurve, InterpFunction, FName("Alpha"));
@@ -62,7 +65,6 @@ void ARubikCube::BeginPlay()
 		EndRotation = FRotator(StartRotation.Pitch, StartRotation.Yaw, StartRotation.Roll + OffsetRotation);
 		MyTimeLine->SetLooping(false);
 		MyTimeLine->SetIgnoreTimeDilation(true);
-
 		MyTimeLine->Play();
 	}
 
@@ -73,11 +75,53 @@ void ARubikCube::BeginPlay()
 void ARubikCube::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (PlayerController == nullptr)
+	{
+		return;
+	}
+	// touch logic
+	//
+
+
+	if (bIsCameraRotating)
+	{
+		
+		CameraRotateX(DirectionCamera.X);
+		CameraRotateY(DirectionCamera.Y);
+		
+		PlayerController->GetInputTouchState(ETouchIndex::Touch1, TouchPosition.X, TouchPosition.Y, bIsTouchingPressed);
+		
+		if (bIsTouchingPressed)
+		{	
+			
+			DirectionCamera.X = TouchPosition.X - StartClickLocation.X;
+			DirectionCamera.Y = StartClickLocation.Y - TouchPosition.Y;
+			DirectionCamera /= 5.f;
+
+			if (DirectionCamera.Size() > 15 )
+			{
+				StartClickLocation = TouchPosition;
+				DirectionCamera = FVector::ZeroVector;
+			}
+
+			StartClickLocation = TouchPosition;
+		}
+
+
+	}
+
+
+	/*GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
+	FString::Printf(TEXT("Is Touching Pressed? : %s"), (bIsTouchingPressed ? TEXT("True") : TEXT("False"))));*/
 
 	// Probably is better to put inside the rotation axis logic 
 	if (bIsFaceRotating)
 	{
-		//Rotate RotatingRoot based if i'm moving right/left top/right
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
+		FString::Printf(TEXT("Rotating Pieces")));
+	
+	//Rotate RotatingRoot based if i'm moving right/left top/right
 	/* Appunti per rotazione:  
  
  	- Migliorare gli stati del gioco e farli funzionanti
@@ -99,40 +143,36 @@ void ARubikCube::Tick(float DeltaTime)
 	//PlayerController->GetMousePosition(MousePosition.X, MousePosition.Y);
 	//PlayerController->DeprojectMousePositionToWorld(MousePosition3D, MouseDirection);
 	//PlayerController->GetInputMouseDelta(MousePosition.X, MousePosition.Y);
-	bool bIsTouchingPressed;
-	FVector TouchPosition;
 	PlayerController->GetInputTouchState(ETouchIndex::Touch1, TouchPosition.X, TouchPosition.Y, bIsTouchingPressed);
-	UE_LOG(LogTemp, Warning, TEXT("Is Touching Pressed? : %b"), bIsTouchingPressed);
+	//UE_LOG(LogTemp, Warning, TEXT("Is Touching Pressed? : %s"), (bIsTouchingPressed ? TEXT("True") : TEXT("False")));
+
+	// Logic to understand which way rotate the pieces
 	if (PlayerController != nullptr && CubeState == ECubeState::RotatingPieces)
 	{
-	FVector Direction;
-	FVector CurrentLocation;
-	FHitResult Hit;
+		FVector Direction;
+		FVector CurrentLocation;
+		FHitResult Hit;
 
-	if (bIsTouchingPressed)
-	{
-		PlayerController->GetHitResultUnderFingerByChannel(ETouchIndex::Touch1, ETraceTypeQuery::TraceTypeQuery1, false, Hit);
-	}
-	else
-	{
-		PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
-	}
-	
-	
-	
-	
+		if (bIsTouchingPressed)
+		{
+			PlayerController->GetHitResultUnderFingerByChannel(ETouchIndex::Touch1, ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+		}
+		else
+		{
+			PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+		}	
 	
 	//TODO controllare che ho hittato un RubikPiece
-	if (Hit.Actor!=nullptr){
-		CurrentLocation = Hit.Location;
-		Direction = StartClickLocation - CurrentLocation;
-		if (Direction.Size() > 10 )
-		{
-			FVector NormalizedDirection = Direction.GetSafeNormal();
-			//UE_LOG(LogTemp, Warning, TEXT("Normalized Direction %s"), *NormalizedDirection.ToString());
-			AddPiecesToRotate(CubeFace, Hit.Actor->GetActorLocation(), NormalizedDirection);
+		if (Hit.Actor!=nullptr){
+			CurrentLocation = Hit.Location;
+			Direction = StartClickLocation - CurrentLocation;
+			if (Direction.Size() > 10 )
+			{
+				FVector NormalizedDirection = Direction.GetSafeNormal();
+				//UE_LOG(LogTemp, Warning, TEXT("Normalized Direction %s"), *NormalizedDirection.ToString());
+				AddPiecesToRotate(CubeFace, Hit.Actor->GetActorLocation(), NormalizedDirection);
+			}
 		}
-	}
 	}
 
 
@@ -165,7 +205,7 @@ void ARubikCube::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction("ZoomIn", EInputEvent::IE_Pressed, this, &ARubikCube::ZoomIn);
 	PlayerInputComponent->BindAction("CubeFaceRotation", EInputEvent::IE_Pressed, this, &ARubikCube::ControlHit);
 	PlayerInputComponent->BindAction("CubeFaceRotation", EInputEvent::IE_Released, this, &ARubikCube::BackToIdle);
-
+	
 	// Binding Axis for camera spring
 	PlayerInputComponent->BindAxis("CameraRotateX", this, &ARubikCube::CameraRotateX);
 	PlayerInputComponent->BindAxis("CameraRotateY", this, &ARubikCube::CameraRotateY);
@@ -223,7 +263,9 @@ void ARubikCube::ControlHit()
 		}
 		else
 		{
+
 			bIsCameraRotating = true;
+			PlayerController->GetInputTouchState(ETouchIndex::Touch1, StartClickLocation.X, StartClickLocation.Y, bIsTouchingPressed);
 			CubeState = ECubeState::RotatingCamera;
 			UE_LOG(LogTemp, Warning, TEXT("Hitted nothing") );
 			
@@ -238,8 +280,7 @@ void ARubikCube::ControlHit()
 }
 
 void ARubikCube::CameraRotateX(float Value)
-{
-	
+{	
 	if (bIsCameraRotating && CubeState == ECubeState::RotatingCamera)
 	{
 		FMath::Clamp(Value, -1.f, 1.f);
@@ -248,17 +289,20 @@ void ARubikCube::CameraRotateX(float Value)
 		FQuat QuatRotation = FQuat(NewRotation);
 		CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
 	}
+
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
+		FString::Printf(TEXT("Calling Camera Rotate X with Value = %f"), Value));
 }
 
 void ARubikCube::CameraRotateY(float Value)
 {
 	if (bIsCameraRotating && CubeState == ECubeState::RotatingCamera)
 	{
-	FMath::Clamp(Value, -1.f, 1.f);
-	PitchCameraValue = Value * GetWorld()->GetDeltaSeconds() * AngleRotation;
-	FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
-	FQuat QuatRotation = FQuat(NewRotation);
-	CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
+		FMath::Clamp(Value, -1.f, 1.f);
+		PitchCameraValue = Value * GetWorld()->GetDeltaSeconds() * AngleRotation;
+		FRotator NewRotation = FRotator(PitchCameraValue, 0.f, 0.f);
+		FQuat QuatRotation = FQuat(NewRotation);
+		CameraSpringArm->AddLocalRotation(QuatRotation, false, 0, ETeleportType::None);
 	}
 }
 
@@ -278,6 +322,7 @@ void ARubikCube::BackToIdle()
 	bIsFaceRotating = false;
 	CubeState = ECubeState::Idle;
 	CubeFace = ECFace::NotSelected;
+	StartClickLocation = FVector::ZeroVector;
 }
 
 void ARubikCube::ClickedFace(FVector NormalVector)
@@ -376,6 +421,7 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 				
 				}
 			}
+			//TODO Rotate Animation Start, use a flag for it
 			RotatingRoot->SetRelativeRotation(FRotator(0,90,0));
 		}
 		else if (Direction.Y < -0.5f)
