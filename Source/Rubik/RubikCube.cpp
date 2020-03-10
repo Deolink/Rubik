@@ -62,10 +62,10 @@ void ARubikCube::BeginPlay()
 		//Setting tutorial vectors
 		StartRotation = RotatingRoot->RelativeRotation;
 
-		EndRotation = FRotator(StartRotation.Pitch, StartRotation.Yaw, StartRotation.Roll + OffsetRotation);
+		//EndRotation = FRotator(StartRotation.Pitch, StartRotation.Yaw, StartRotation.Roll + OffsetRotation);
 		MyTimeLine->SetLooping(false);
 		MyTimeLine->SetIgnoreTimeDilation(true);
-		MyTimeLine->Play();
+		//MyTimeLine->Play();
 	}
 
 	SpawnPieces();
@@ -116,7 +116,7 @@ void ARubikCube::Tick(float DeltaTime)
 	FString::Printf(TEXT("Is Touching Pressed? : %s"), (bIsTouchingPressed ? TEXT("True") : TEXT("False"))));*/
 
 	// Probably is better to put inside the rotation axis logic 
-	if (bIsFaceRotating)
+	if (bIsFaceRotating && CubeState != ECubeState::Animating)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red,
 		FString::Printf(TEXT("Rotating Pieces")));
@@ -147,49 +147,33 @@ void ARubikCube::Tick(float DeltaTime)
 	//UE_LOG(LogTemp, Warning, TEXT("Is Touching Pressed? : %s"), (bIsTouchingPressed ? TEXT("True") : TEXT("False")));
 
 	// Logic to understand which way rotate the pieces
-	if (PlayerController != nullptr && CubeState == ECubeState::RotatingPieces)
-	{
-		FVector Direction;
-		FVector CurrentLocation;
-		FHitResult Hit;
+		if (PlayerController != nullptr && CubeState == ECubeState::RotatingPieces)
+		{
+			FVector Direction;
+			FVector CurrentLocation;
+			FHitResult Hit;
 
-		if (bIsTouchingPressed)
-		{
-			PlayerController->GetHitResultUnderFingerByChannel(ETouchIndex::Touch1, ETraceTypeQuery::TraceTypeQuery1, false, Hit);
-		}
-		else
-		{
-			PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
-		}	
-	
-	//TODO controllare che ho hittato un RubikPiece
-		if (Hit.Actor!=nullptr){
-			CurrentLocation = Hit.Location;
-			Direction = StartClickLocation - CurrentLocation;
-			if (Direction.Size() > 10 )
+			if (bIsTouchingPressed)
 			{
-				FVector NormalizedDirection = Direction.GetSafeNormal();
-				//UE_LOG(LogTemp, Warning, TEXT("Normalized Direction %s"), *NormalizedDirection.ToString());
-				AddPiecesToRotate(CubeFace, Hit.Actor->GetActorLocation(), NormalizedDirection);
+				PlayerController->GetHitResultUnderFingerByChannel(ETouchIndex::Touch1, ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+			}
+			else
+			{
+				PlayerController->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, false, Hit);
+			}	
+		
+			//TODO controllare che ho hittato un RubikPiece
+			if (Hit.Actor!=nullptr){
+				CurrentLocation = Hit.Location;
+				Direction = StartClickLocation - CurrentLocation;
+				if (Direction.Size() > 10 )
+				{
+					FVector NormalizedDirection = Direction.GetSafeNormal();
+					//UE_LOG(LogTemp, Warning, TEXT("Normalized Direction %s"), *NormalizedDirection.ToString());
+					AddPiecesToRotate(CubeFace, Hit.Actor->GetActorLocation(), NormalizedDirection);
+				}
 			}
 		}
-	}
-
-
-	/*if ((ScreenPointClicked - MousePosition).GetSafeNormal() != FVector2D::ZeroVector)
-	{
-		UE_LOG(LogTemp, Display, TEXT("entered if"));
-		switch (CubeState)
-		{
-		case ECubeState::Idle:
-			
-			break;
-		
-		default:
-			break;
-		}
-	}
-	*/
 	}
 }
 
@@ -354,24 +338,6 @@ void ARubikCube::ClickedFace(FVector NormalVector)
 	}
 }
 
-/*void ARubikCube::RotatePieces()
-{
-	
-	RelativeSpeed = FMath::Clamp<float>(RelativeSpeed, -1.f, 1.f);
-	float RotationChange = RelativeSpeed * MaxDegreesPerSecond * GetWorld()->DeltaTimeSeconds;
-	float Rotation = YawRotation->RelativeRotation.Yaw + RotationChange;
-	YawRotation->SetRelativeRotation(FRotator(0.f, Rotation, 0.f));
-
-	if (YawRotation->RelativeRotation.Yaw > 45.f)
-	{
-		RelativeSpeed = -1;
-	}
-	else if (YawRotation->RelativeRotation.Yaw < -45.f)
-	{
-		RelativeSpeed = 1;
-	}
-}*/
-
 void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLocation, FVector Direction)
 {
 	
@@ -421,7 +387,14 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 				}
 			}
 			//TODO Rotate Animation Start, use a flag for it
-			RotatingRoot->SetRelativeRotation(FRotator(0,90,0));
+			//RotatingRoot->SetRelativeRotation(FRotator(0,90,0));
+
+			//Start Animation
+
+			StartRotation = RotatingRoot->RelativeRotation;
+
+			EndRotation = FRotator(StartRotation.Pitch, StartRotation.Yaw + OffsetRotation, StartRotation.Roll);
+			MyTimeLine->PlayFromStart();
 		}
 		else if (Direction.Y < -0.5f)
 		{
@@ -848,13 +821,16 @@ void ARubikCube::AddPiecesToRotate(ECFace CubeFaceCheck, FVector PieceHittedLoca
 }
 
 void ARubikCube::TimelineFloatReturn(float value)
-{
+{	
+	CubeState = ECubeState::Animating;
+	RotatingRoot->SetRelativeRotation(FMath::Lerp(StartRotation, EndRotation, value));	
 	UE_LOG(LogTemp, Warning, TEXT("%f"), value);
 }
 
 void ARubikCube::OnTimelineFinished()
 {
-
-	UE_LOG(LogTemp, Warning, TEXT("Finished"));
+	CubeState = ECubeState::Idle;
+	//RotatingRoot->SetRelativeRotation(FRotator::ZeroRotator);
+	//UE_LOG(LogTemp, Warning, TEXT("Finished"));
 }
 

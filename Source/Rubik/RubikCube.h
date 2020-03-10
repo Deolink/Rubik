@@ -31,6 +31,7 @@ enum class ECubeState : uint8
 {
 	RotatingCamera UMETA(DisplayName="RotatingCamera"),
 	RotatingPieces UMETA(DisplayName="RotatingPieces"),
+	Animating      UMETA(DisplayName="Animation"),
 	Pause 		   UMETA(DisplayName="Pause"),
 	Idle 		   UMETA(DisplayName="Idle"),
 	Scramble       UMETA(DisplayName="Scramble")
