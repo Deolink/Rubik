@@ -15,6 +15,14 @@ class UTimelineComponent;
 class UCurveFloat;
 
 UENUM(BlueprintType)
+enum class EPiecesGroup : uint8
+{
+	GroupX		UMETA(DisplayName="Pieces on X"),
+	GroupY		UMETA(DisplayName="Pieces on Y"),
+	GroupZ		UMETA(DisplayName="Pieces on Z")
+};
+
+UENUM(BlueprintType)
 enum class ECFace : uint8
 {
 	Front 		UMETA(DisplayName="Front"),
@@ -97,6 +105,7 @@ public:
 	FVector TouchPosition;
 
 	//Timeline setup
+	UPROPERTY()
 	UTimelineComponent* MyTimeLine;
 
 	UPROPERTY(EditAnywhere, Category = "Timeline")
@@ -205,6 +214,6 @@ private:
 	UFUNCTION()
 	void ClickedFace(FVector NormalVector);
 
-	/*UFUNCTION()
-	void RotatePieces();*/
+	UFUNCTION()
+	void PiecesGroup(EPiecesGroup PiecesGroup, FRotator EndRotationDelta, FVector PieceHittedLocation);
 };
